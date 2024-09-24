@@ -1,0 +1,6 @@
+*.swo
+*.swp
+
+tags
+build/
+.DS_Store
