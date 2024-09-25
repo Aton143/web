@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -6,11 +7,25 @@
 #include <SDL.h>
 #include <SDL_opengles2.h>
 #else
-#define GL_SILENCE_DEPRECATION
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_video.h"
+#ifdef _WIN32
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include "SDL2/SDL_opengl.h"
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "SDL2main.lib")
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "opengl32.lib")
+#undef main
+#endif
+
+#ifdef __APPLE__
+  #define GL_SILENCE_DEPRECATION
+  #include <OpenGL/gl3.h>
+  #include <OpenGL/gl3ext.h>
+#endif
 #endif
 
 static float lerp(float min, float t, float max)
@@ -19,7 +34,7 @@ static float lerp(float min, float t, float max)
 }
 
 static void main_loop(void *arg);
-int main(void);
+int main(int argc, char *argv[]);
 
 GLfloat vertices[512] = {};
 uint32_t vertex_index = 0;
@@ -32,7 +47,7 @@ mouse_callback(int                         event_type,
                const EmscriptenMouseEvent *mouse_event,
                void                       *user_data)
 {
-  printf("screen: (%d,%d), client: (%d,%d),%s%s%s%s button: %hu, "
+  SDL_Log("screen: (%d,%d), client: (%d,%d),%s%s%s%s button: %hu, "
          "buttons: %hu, movement: (%d,%d), canvas: (%d,%d), timestamp: %lf\n",
          mouse_event->screenX,
          mouse_event->screenY,
@@ -65,7 +80,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   // bottom left
@@ -78,7 +93,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   // bottom right
@@ -91,7 +106,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   // bottom right
@@ -104,7 +119,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   // top right
@@ -117,7 +132,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   // top left
@@ -130,7 +145,7 @@ mouse_callback(int                         event_type,
 
   vertices[vertex_index + 5] = radius;
 
-  printf("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
+  SDL_Log("%d, (%2f, %2f)\n", vertex_index, vertices[vertex_index + 0],  vertices[vertex_index + 1]);
   vertex_index += 1;
 
   return(0);
@@ -189,7 +204,7 @@ void main_loop(void *arg)
   SDL_GL_SwapWindow(window);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 #if __EMSCRIPTEN__
   EMSCRIPTEN_RESULT ret = EMSCRIPTEN_RESULT_FAILED;
@@ -222,21 +237,23 @@ int main(void)
 #else
   SDL_Init(SDL_INIT_VIDEO);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
   SDL_GL_SetSwapInterval(1);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GLContext glc = SDL_GL_CreateContext(window);
-  printf("INFO: GL version: %s\n", glGetString(GL_VERSION));
+  SDL_Log("INFO: GL version: %s\n", glGetString(GL_VERSION));
+  
+  glewInit();
 
   // NOTE(antoniom): Set clear color to black
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
   // NOTE(antoniom): Get actual GL window size in pixels, in case of high dpi scaling
   SDL_GL_GetDrawableSize(window, &win_width, &win_height);
-  printf("INFO: GL window size = %dx%d\n", win_width, win_height);
+  SDL_Log("INFO: GL window size = %dx%d\n", win_width, win_height);
   glViewport(0, 0, win_width, win_height);   
 
   // NOTE(antoniom): Create and compile vertex shader

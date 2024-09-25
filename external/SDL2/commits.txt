@@ -1,0 +1,7 @@
+SDL       a4a8a2907519dd76a2c2463c6b2380e4b6dfa144        
+SDL_image b6fe4176d55e047f4b93af1eb1d09d8ede6731f3 
+SDL_mixer d9b6dd3fb363df4d4b57b19b33307273ed650ac7 
+SDL_sound d3031f76582aac65cffb6f49d141a5e78f611d78 
+SDL_ttf   62e9c82b2c9ad95a93a853885c2fd55d41781e8f   
+SDL_rtf   09fa7ee967b9b2ca02ed60c8193f1a7c34221657   
+SDL_net   3b3f5b13722081f75bf39ffcfc764f82377e90ae   
